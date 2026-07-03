@@ -1,3 +1,4 @@
+# nixos-configuration.nix
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running `nixos-help`).
@@ -5,42 +6,57 @@
 { config, pkgs, ... }:
 
 {
+
+  # == Hardware ==
+
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
     ];
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
+  # == Bootloader ==
+
+  boot.loader.systemd-boot.enable = true; # Use the systemd-boot EFI boot loader.
   boot.loader.efi.canTouchEfiVariables = true;
+  # boot.loader.efi.canary = false; # Disable canary for initial setup
 
-  # networking.hostName = "nixos"; # Define your hostname.
-  networking.hostName = "nix-host";
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-  # networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  # == Basic System Configuration ==
 
-  # Set your time zone.
-  # time.timeZone = "Europe/Amsterdam";
+  # time.timeZone = "America/Los_Angeles";
   time.timeZone = "UTC";
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
-  # Select internationalisation properties.
-  # i18n.defaultLocale = "en_US.UTF-8";
+  i18n.defaultLocale = "en_US.UTF-8";
   # console = {
   #   font = "Lat2-Terminus16";
   #   keyMap = "us";
   #   useXkbConfig = true; # use xkbOptions in tty.
   # };
 
+  # == Time Synchronization ==
+  #  NixOS uses systemd-timesyncd by default.  Consider using `ntpd` if needed.
+  # services.ntpd.enable = false; # Disable if you don't need it.
+
+  # == Networking ==
+  
+  networking.hostName = "nix-host";
+  networking.domain = "example.com";
+
+  # Pick only one of the below networking options.
+  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  # networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+
+  # Configure network proxy if necessary
+  # networking.proxy.default = "http://user:password@proxy:port/";
+  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  # Example: Configure a specific network interface (replace with your needs)
+  # networking.networkInterfaces.enp0s3 = {
+  #   device = "enp0s3";
+  #   ipAddress = "192.168.1.100/24";
+  #   gateway = "192.168.1.1";
+  # };
+
   # Enable the X11 windowing system.
   # services.xserver.enable = true;
-
-
-  
 
   # Configure keymap in X11
   # services.xserver.layout = "us";
@@ -56,6 +72,8 @@
   # Enable touchpad support (enabled default in most desktopManager).
   # services.xserver.libinput.enable = true;
 
+  # == Users ==
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
   # users.users.alice = {
   #   isNormalUser = true;
@@ -66,18 +84,51 @@
   #   ];
   # };
 
+  # Define a user account. Need to set a password with ‘passwd’.
+  users.users.myuser = {
+    isNormalUser = true;
+    createHome = true;
+    home = "/home/myuser";
+    group = "users";
+    extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+    shell = pkgs.zsh;  # Or your preferred shell (bash, fish, etc.)
+  #   packages = with pkgs; [
+  #     firefox
+  #     tree
+  #   ];
+  };
+
+  # == Services ==
+
+  # Example:  Enable and configure a web server (replace with your needs)
+  # services.nginx = {
+  #   enable = true;
+  #   # ... other nginx configuration options ...
+  # };
+
+  # Example: Enable and configure a database (replace with your needs)
+  # services.postgresql = {
+  #   enable = true;
+  #   # ... other postgresql configuration options ...
+  # };
+
+  # == System Packages ==
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   # environment.systemPackages = with pkgs; [
   #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
   #   wget
   # ];
+
   environment.systemPackages = with pkgs; [
     vim
     wget
     curl
     git
     python3
+    htop
+    tree
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -93,7 +144,8 @@
   # Enable the OpenSSH daemon.
   # services.openssh.enable = true;
   services.openssh.enable = true;
-  # services.openssh.passwordAuthentication = true; # If I need password auth
+  # services.openssh.passwordAuthentication = true;
+  # services.openssh.permitRootLogin = "no";
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -140,5 +192,9 @@
   #  libinput.enable = true;
   #};
 
-}
 
+  # ==  Modules ==
+  #  NixOS uses modules to organize configuration.  Explore the NixOS modules
+  #  documentation: https://wiki.nixos.org/wiki/NixOS_modules
+
+}
